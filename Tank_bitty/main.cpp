@@ -8,6 +8,8 @@
 //	描述：包含程序所依赖的头文件
 //------------------------------------------------------------------------------------------------
 #include <windows.h>
+#include  <time.h> //使用获取系统时间time()函数需要包含的头文件
+#include "Tank.h"
 
 //-----------------------------------【库文件包含部分】---------------------------------------
 //	描述：包含程序所依赖的库文件
@@ -17,15 +19,18 @@
 //-----------------------------------【宏定义部分】--------------------------------------------
 //	描述：定义一些辅助宏
 //------------------------------------------------------------------------------------------------
-#define WINDOW_WIDTH	800							//为窗口宽度定义的宏，以方便在此处修改窗口宽度
-#define WINDOW_HEIGHT	600							//为窗口高度定义的宏，以方便在此处修改窗口高度
-#define WINDOW_TITLE	L"【致我们永不熄灭的游戏开发梦想】GDI文字输出演示程序"	//为窗口标题定义的宏
+#define WINDOW_WIDTH	932						//为窗口宽度定义的宏，以方便在此处修改窗口宽度
+#define WINDOW_HEIGHT	932							//为窗口高度定义的宏，以方便在此处修改窗口高度
+#define WINDOW_TITLE	L"坦克大战"	//为窗口标题定义的宏
 
 //-----------------------------------【全局变量声明部分】-------------------------------------
 //	描述：全局变量的声明
 //------------------------------------------------------------------------------------------------
-HDC			g_hdc = NULL;       //全局设备环境句柄
-
+HDC			g_hdc = NULL, g_mdc = NULL, g_bufdc = NULL;//全局设备环境句柄
+HBITMAP g_hBitmap = NULL;	//全局位图句柄
+DWORD		g_tPre = 0, g_tNow = 0;					//声明两个函数来记录时间,g_tPre记录上一次绘图的时间，g_tNow记录此次准备绘图的时间
+Tank play1;	//声明两个玩家坦克;
+int g_iPicNum = 0, x = 0, y = 0;
 
 //-----------------------------------【全局函数声明部分】-------------------------------------
 //	描述：全局函数声明，防止“未声明的标识”系列错误
@@ -50,7 +55,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	wndClass.hInstance = hInstance;						//指定包含窗口过程的程序的实例句柄。
 	wndClass.hIcon = (HICON)::LoadImage(NULL, L"../Tank_resource/resources/favicon.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);  //本地加载自定义ico图标
 	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);    //指定窗口类的光标句柄。
-	wndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);  //为hbrBackground成员指定一个白色画刷句柄	
+	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);  //为hbrBackground成员指定一个白色画刷句柄	
 	wndClass.lpszMenuName = NULL;						//用一个以空终止的字符串，指定菜单资源的名字。
 	wndClass.lpszClassName = L"ForTheDreamOfGameDevelop";		//用一个以空终止的字符串，指定窗口类的名字。
 
@@ -64,7 +69,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		WINDOW_HEIGHT, NULL, NULL, hInstance, NULL);
 
 	//【4】窗口创建四步曲之四：窗口的移动、显示与更新
-	MoveWindow(hwnd, 250, 80, WINDOW_WIDTH, WINDOW_HEIGHT, true);		//调整窗口显示时的位置，使窗口左上角位于（250,80）处
+	MoveWindow(hwnd, 300, 80, WINDOW_WIDTH, WINDOW_HEIGHT, true);		//调整窗口显示时的位置，使窗口左上角位于（300,80）处
 	ShowWindow(hwnd, nShowCmd);    //调用ShowWindow函数来显示窗口
 	UpdateWindow(hwnd);						//对窗口进行更新，就像我们买了新房子要装修一样
 
@@ -85,6 +90,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			TranslateMessage(&msg);		//将虚拟键消息转换为字符消息
 			DispatchMessage(&msg);			//分发一个消息给窗口程序。
+		}	
+		else
+		{
+			g_tNow = GetTickCount();   //获取当前系统时间
+			if (g_tNow - g_tPre >= 100)        //当此次循环运行与上次绘图时间相差0.1秒时再进行重绘操作
+				Game_Paint(hwnd);
 		}
 	}
 
@@ -102,13 +113,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)						//switch语句开始
 	{
-	case WM_PAINT:						// 若是客户区重绘消息
-		g_hdc = BeginPaint(hwnd, &paintStruct);  //指定窗口进行绘图工作的准备，并用将和绘图有关的信息填充到paintStruct结构体中。
-		Game_Paint(hwnd);
-		EndPaint(hwnd, &paintStruct);			//EndPaint函数标记指定窗口的绘画过程结束
-		ValidateRect(hwnd, NULL);		// 更新客户区的显示
-		break;									//跳出该switch语句
-
 	case WM_KEYDOWN:					// 若是键盘按下消息
 		if (wParam == VK_ESCAPE)    // 如果被按下的键是ESC
 			DestroyWindow(hwnd);		// 销毁窗口, 并发送一条WM_DESTROY消息
@@ -118,6 +122,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 		Game_CleanUp(hwnd);			//调用自定义的资源清理函数Game_CleanUp（）进行退出前的资源清理
 		PostQuitMessage(0);			//向系统表明有个线程有终止请求。用来响应WM_DESTROY消息
 		break;									//跳出该switch语句
+
+	case VK_UP:
+		play1.Tank_move(0);
+		break;
+	case VK_DOWN:
+		play1.Tank_move(2);
+		break;
+	case VK_LEFT:
+		play1.Tank_move(1);
+		break;
+	case VK_RIGHT:
+		play1.Tank_move(3);
+		break;
 
 	default:										//若上述case条件都不符合，则执行该default语句
 		return DefWindowProc(hwnd, message, wParam, lParam);		//调用缺省的窗口过程
@@ -131,9 +148,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 //------------------------------------------------------------------------------------------------
 BOOL Game_Init(HWND hwnd)
 {
+	srand((unsigned)time(NULL));
+	HBITMAP bmp;
+
 	g_hdc = GetDC(hwnd);  //获取设备环境句柄
+	//建立兼容DC
+	g_mdc = CreateCompatibleDC(g_hdc);
+	g_bufdc = CreateCompatibleDC(g_hdc);
+	bmp = CreateCompatibleBitmap(g_hdc, WINDOW_WIDTH, WINDOW_HEIGHT);//建一个和窗口兼容的空的位图对象
+
+	SelectObject(g_mdc, bmp);
+	//加载位图
+	g_hBitmap = (HBITMAP)LoadImage(NULL, L"../Tank_resource/resources/tank.bmp", IMAGE_BITMAP, 400, 256, LR_LOADFROMFILE);
+
 	Game_Paint(hwnd);
-	ReleaseDC(hwnd, g_hdc);  //释放设备环境
 	return TRUE;
 }
 
@@ -142,26 +170,16 @@ BOOL Game_Init(HWND hwnd)
 //--------------------------------------------------------------------------------------------------
 VOID Game_Paint(HWND hwnd)
 {
-	HFONT hFont = CreateFont(30, 0, 0, 0, 0, 0, 0, 0, GB2312_CHARSET, 0, 0, 0, 0, L"微软雅黑");  //创建一种字体
-	SelectObject(g_hdc, hFont);  //将字体选入设备环境中
-	SetBkMode(g_hdc, TRANSPARENT);    //设置输出文字背景色为透明
-
-	//定义三段文字
-	wchar_t text1[] = L"我们所有的梦想都可以成真，只要我们有勇气去追求它们。";
-	wchar_t text2[] = L"All our dreams can come true, if we have the courage to pursue them. ";
-	wchar_t text3[] = L"--------沃尔特 迪斯尼";
-
-	//设置文字颜色并输出第一段文字
-	SetTextColor(g_hdc, RGB(50, 255, 50));
-	TextOut(g_hdc, 30, 150, text1, wcslen(text1));
-	//设置文字颜色并输出第二段文字
-	SetTextColor(g_hdc, RGB(50, 50, 255));
-	TextOut(g_hdc, 30, 200, text2, wcslen(text2));
-	//设置文字颜色并输出第三段文字
-	SetTextColor(g_hdc, RGB(255, 150, 50));
-	TextOut(g_hdc, 500, 250, text3, wcslen(text3));
-
-	DeleteObject(hFont);//释放字体对象
+	//选择位图对象
+	SelectObject(g_bufdc, g_hBitmap);
+	//进行贴图
+	//StretchBlt(g_mdc, 416, 800, 32, 32, g_bufdc, 0, 0, 16, 16, SRCPAINT);
+	//BitBlt(g_hdc, 416, 800, 32, 32, g_mdc, 0, 0, 16, 16, SRCPAINT);
+	play1.Tank_Getcoord(x, y);
+	BitBlt(g_mdc, x, y, 16, 16, g_bufdc, 0, 0, SRCCOPY);
+	StretchBlt(g_hdc, x, y, 32, 32, g_mdc, 0, 0, 16, 16, SRCPAINT);
+	//BitBlt(g_hdc, 0, 0, 16, 16, g_mdc, 0, 0, SRCCOPY);
+	g_tPre = GetTickCount(); //记录此次绘图时间
 }
 
 //-----------------------------------【Game_CleanUp( )函数】--------------------------------
@@ -169,5 +187,9 @@ VOID Game_Paint(HWND hwnd)
 //---------------------------------------------------------------------------------------------------
 BOOL Game_CleanUp(HWND hwnd)
 {
+	DeleteDC(g_mdc);
+	DeleteDC(g_bufdc);
+	DeleteObject(g_hBitmap);
+	ReleaseDC(hwnd, g_hdc);  //释放设备环境
 	return TRUE;
 }
