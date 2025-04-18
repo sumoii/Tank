@@ -27,10 +27,10 @@
 //	描述：全局变量的声明
 //------------------------------------------------------------------------------------------------
 HDC			g_hdc = NULL, g_mdc = NULL, g_bufdc = NULL;//全局设备环境句柄
-HBITMAP g_hBitmap = NULL;	//全局位图句柄
-DWORD		g_tPre = 0, g_tNow = 0;					//声明两个函数来记录时间,g_tPre记录上一次绘图的时间，g_tNow记录此次准备绘图的时间
+HBITMAP g_hBitmap = NULL , g_hBackGround = NULL;	//全局位图句柄
+DWORD		g_tPre = 0, g_tNow = 0,g_tStart = 0;					//声明两个函数来记录时间,g_tPre记录上一次绘图的时间，g_tNow记录此次准备绘图的时间
 Tank play1;	//声明两个玩家坦克;
-int g_iPicNum = 0, x = 0, y = 0;
+int g_iPicNum1 = 0, g_iPicNum2 = 0, x = 0, y = 0, g_iDirection1 = 0;
 
 //-----------------------------------【全局函数声明部分】-------------------------------------
 //	描述：全局函数声明，防止“未声明的标识”系列错误
@@ -114,27 +114,31 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)						//switch语句开始
 	{
 	case WM_KEYDOWN:					// 若是键盘按下消息
-		if (wParam == VK_ESCAPE)    // 如果被按下的键是ESC
-			DestroyWindow(hwnd);		// 销毁窗口, 并发送一条WM_DESTROY消息
-		break;									//跳出该switch语句
+		switch (wParam)
+		{
+		case VK_ESCAPE://按下Esc键
+			DestroyWindow(hwnd); //销毁窗口，并发送一条WM_DESTROY消息
+			PostQuitMessage(0); //结束程序
+			break;
+		case 87:
+			play1.Tank_move(0);
+			break;
+		case 65:
+			play1.Tank_move(1);
+			break;
+		case 83:
+			play1.Tank_move(2);
+			break;
+		case 68:
+			play1.Tank_move(3);
+			break;
+		}
+		break;
 
 	case WM_DESTROY:					//若是窗口销毁消息
 		Game_CleanUp(hwnd);			//调用自定义的资源清理函数Game_CleanUp（）进行退出前的资源清理
 		PostQuitMessage(0);			//向系统表明有个线程有终止请求。用来响应WM_DESTROY消息
 		break;									//跳出该switch语句
-
-	case VK_UP:
-		play1.Tank_move(0);
-		break;
-	case VK_DOWN:
-		play1.Tank_move(2);
-		break;
-	case VK_LEFT:
-		play1.Tank_move(1);
-		break;
-	case VK_RIGHT:
-		play1.Tank_move(3);
-		break;
 
 	default:										//若上述case条件都不符合，则执行该default语句
 		return DefWindowProc(hwnd, message, wParam, lParam);		//调用缺省的窗口过程
@@ -160,7 +164,8 @@ BOOL Game_Init(HWND hwnd)
 	SelectObject(g_mdc, bmp);
 	//加载位图
 	g_hBitmap = (HBITMAP)LoadImage(NULL, L"../Tank_resource/resources/tank.bmp", IMAGE_BITMAP, 400, 256, LR_LOADFROMFILE);
-
+	g_hBackGround = (HBITMAP)LoadImage(NULL, L"../Tank_resource/resources/black.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE);
+	g_tStart = GetTickCount();
 	Game_Paint(hwnd);
 	return TRUE;
 }
@@ -170,15 +175,35 @@ BOOL Game_Init(HWND hwnd)
 //--------------------------------------------------------------------------------------------------
 VOID Game_Paint(HWND hwnd)
 {
+	if (g_iPicNum1 == 4)
+		g_iPicNum1 = 0;
+	if (g_iPicNum2 == 2)
+		g_iPicNum2 = 0;
+
+	//选择位图对象
+	SelectObject(g_bufdc, g_hBackGround);
+	//贴上背景图片
+	BitBlt(g_mdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, g_bufdc, 0, 0, SRCCOPY);
+
 	//选择位图对象
 	SelectObject(g_bufdc, g_hBitmap);
-	//进行贴图
-	//StretchBlt(g_mdc, 416, 800, 32, 32, g_bufdc, 0, 0, 16, 16, SRCPAINT);
-	//BitBlt(g_hdc, 416, 800, 32, 32, g_mdc, 0, 0, 16, 16, SRCPAINT);
-	play1.Tank_Getcoord(x, y);
-	BitBlt(g_mdc, x, y, 16, 16, g_bufdc, 0, 0, SRCCOPY);
-	StretchBlt(g_hdc, x, y, 32, 32, g_mdc, 0, 0, 16, 16, SRCPAINT);
-	//BitBlt(g_hdc, 0, 0, 16, 16, g_mdc, 0, 0, SRCCOPY);
+	play1.Tank_Getcoord(&x, &y);
+	g_tNow = GetTickCount();
+	if ((g_tNow - g_tStart) < 1000) {
+		StretchBlt(g_mdc, x, y, 32, 32, g_bufdc,  (16+g_iPicNum1)* 16, 16*6, 16, 16, SRCPAINT);
+		BitBlt(g_hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, g_mdc, 0, 0, SRCCOPY);
+		g_iPicNum1++;
+	}
+	else{
+		g_iDirection1 = play1.Tank_Getdirection();
+		//BitBlt(g_mdc, x, y, 16, 16, g_bufdc, g_iDirection1 *2* 16, 0, SRCPAINT);
+		StretchBlt(g_mdc, x, y, 32, 32, g_bufdc, g_iDirection1 * 2 * 16, 0, 16, 16, SRCPAINT);
+		if ((g_tNow - g_tStart) < 3000){
+			StretchBlt(g_mdc, x, y, 32, 32, g_bufdc, (16 + g_iPicNum2) * 16, 16 * 9, 16, 16, SRCPAINT);
+			g_iPicNum2++;
+		}
+		BitBlt(g_hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, g_mdc, 0, 0, SRCCOPY);
+	}
 	g_tPre = GetTickCount(); //记录此次绘图时间
 }
 
@@ -189,6 +214,7 @@ BOOL Game_CleanUp(HWND hwnd)
 {
 	DeleteDC(g_mdc);
 	DeleteDC(g_bufdc);
+	DeleteObject(g_hBackGround);
 	DeleteObject(g_hBitmap);
 	ReleaseDC(hwnd, g_hdc);  //释放设备环境
 	return TRUE;

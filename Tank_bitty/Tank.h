@@ -4,16 +4,16 @@ class Tank
 {
 private:
 	int Tank_Ip = 1;
-	int Tank_Speed = 16;
-	int Tank_X = 416;
-	int Tank_Y = 800;
+	float Tank_Speed = 4.5;
+	float Tank_X = 416;
+	float Tank_Y = 800;
 	int Tank_Level = 1;
-	int Tank_Living = 0;
 	int Tank_Direction = 0;
 	int Tank_Bullet = 0;
 public:
-	bool Tank_Getcoord(int &X_coord, int &Y_coord);
+	bool Tank_Getcoord(int *X_coord, int *Y_coord);
 	bool Tank_move(int Direction);
 	bool Tank_deal();
 	bool Tank_Uplevel();
+	int Tank_Getdirection();
 };

@@ -7,6 +7,7 @@ bool Tank::Tank_move(int Direction) {
 	{
 	case 0:
 		Tank_Y -= Tank_Speed;
+		Tank_Direction = 0;
 		if (Tank_Y < 0)
 			Tank_Y = 0;
 		break;
@@ -14,22 +15,33 @@ bool Tank::Tank_move(int Direction) {
 		Tank_X -= Tank_Speed;
 		if (Tank_X < 0)
 			Tank_X = 0;
+		Tank_Direction = 1;
+		break;
 	case 2:
 		Tank_Y += Tank_Speed;
 		if (Tank_Y >= WINDOW_HEIGHT)
 			Tank_Y = WINDOW_HEIGHT;
+		Tank_Direction = 2;
+		break;
 	case 3:
 		Tank_X += Tank_Speed;
 		if (Tank_X > WINDOW_WIDTH)
 			Tank_X = WINDOW_WIDTH;
+		Tank_Direction = 3;
+		break;
 	default:
 		break;
 	}
 	return 0;
 }
 
-bool Tank::Tank_Getcoord(int &X_coord, int &Y_coord) {
-	X_coord = Tank_X;
-	Y_coord = Tank_Y;
+bool Tank::Tank_Getcoord(int *X_coord, int *Y_coord) {
+	*X_coord = Tank_X;
+	*Y_coord = Tank_Y;
 	return 0;
+}
+
+int Tank::Tank_Getdirection()
+{
+	return Tank_Direction;
 }
