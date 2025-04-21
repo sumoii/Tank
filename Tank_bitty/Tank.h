@@ -16,4 +16,5 @@ public:
 	bool Tank_deal();
 	bool Tank_Uplevel();
 	int Tank_Getdirection();
+	bool Tank_Shoot(int* X_coord, int* Y_coord);
 };

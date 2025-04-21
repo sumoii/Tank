@@ -45,3 +45,27 @@ int Tank::Tank_Getdirection()
 {
 	return Tank_Direction;
 }
+
+bool Tank::Tank_Shoot(int *X_coord,int *Y_coord) {
+	switch (Tank_Direction)
+	{
+	case 0:
+		*X_coord = Tank_X + 6;
+		break;
+	case 1:
+		*Y_coord = Tank_Y + 6;
+		break;
+	case 2:
+		*X_coord = Tank_X + 6;
+		*Y_coord = Tank_Y + 13;
+		break;
+	case 3:
+		*X_coord = Tank_X + 13;
+		*Y_coord = Tank_Y + 6;
+		break;
+	default:
+		break;
+	}
+	Tank_Bullet++;
+	return 0;
+}
