@@ -33,7 +33,8 @@ HBITMAP g_hBitmap = NULL , g_hBackGround = NULL;	//全局位图句柄
 DWORD		g_tPre = 0, g_tNow = 0,g_tStart = 0;					//声明两个函数来记录时间,g_tPre记录上一次绘图的时间，g_tNow记录此次准备绘图的时间
 Tank Play1;	//声明两个玩家坦克;
 Bullet Bullet_Arry[BULLET_MAX];
-int g_iPicNum1 = 0, g_iPicNum2 = 0, x = 0, y = 0, g_iDirection1 = 0, g_iBulletNum = 0;
+int g_iPicNum1 = 0, g_iPicNum2 = 0,g_iDirection1 = 0, g_iBulletNum = 0;
+float x = 0, y = 0;
 
 //-----------------------------------【全局函数声明部分】-------------------------------------
 //	描述：全局函数声明，防止“未声明的标识”系列错误
@@ -98,9 +99,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			g_tNow = GetTickCount();   //获取当前系统时间
 			if (g_tNow - g_tPre >= 100)        //当此次循环运行与上次绘图时间相差0.1秒时再进行重绘操作
+			{
 				for (int i = 0; i <= g_iBulletNum; i++)
 					Bullet_Arry[i].Bullet_Move();
 				Game_Paint(hwnd);
+			}
 		}
 	}
 
@@ -126,16 +129,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			PostQuitMessage(0); //结束程序
 			break;
 		case 87:
-			Play1.Tank_move(0);
+			Play1.Tank_Move(0);
 			break;
 		case 65:
-			Play1.Tank_move(1);
+			Play1.Tank_Move(1);
 			break;
 		case 83:
-			Play1.Tank_move(2);
+			Play1.Tank_Move(2);
 			break;
 		case 68:
-			Play1.Tank_move(3);
+			Play1.Tank_Move(3);
 			break;
 		case 74:
 			Play1.Tank_Shoot(&x,&y);
@@ -177,6 +180,7 @@ BOOL Game_Init(HWND hwnd)
 	g_hBitmap = (HBITMAP)LoadImage(NULL, L"../Tank_resource/resources/tank.bmp", IMAGE_BITMAP, 400, 256, LR_LOADFROMFILE);
 	g_hBackGround = (HBITMAP)LoadImage(NULL, L"../Tank_resource/resources/black.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE);
 	g_tStart = GetTickCount();
+	Play1.TanK_Born(432, 800);
 	Game_Paint(hwnd);
 	return TRUE;
 }
@@ -207,19 +211,19 @@ VOID Game_Paint(HWND hwnd)
 	}
 	else{
 		g_iDirection1 = Play1.Tank_Getdirection();
-		BitBlt(g_mdc, x, y, 16, 16, g_bufdc, g_iDirection1 *2* 16, 0, SRCPAINT);
-		//StretchBlt(g_mdc, x, y, 32, 32, g_bufdc, g_iDirection1 * 2 * 16, 0, 16, 16, SRCPAINT);
+		//BitBlt(g_mdc, x, y, 16, 16, g_bufdc, g_iDirection1 *2* 16, 0, SRCPAINT);
+		StretchBlt(g_mdc, x, y, 32, 32, g_bufdc, g_iDirection1 * 2 * 16, 0, 16, 16, SRCPAINT);
 		if ((g_tNow - g_tStart) < 3000){
-			BitBlt(g_mdc, x, y, 16, 16, g_bufdc, (16 + g_iPicNum2) * 16, 16*9, SRCPAINT);
-			//StretchBlt(g_mdc, x, y, 32, 32, g_bufdc, (16 + g_iPicNum2) * 16, 16 * 9, 16, 16, SRCPAINT);
+			//BitBlt(g_mdc, x, y, 16, 16, g_bufdc, (16 + g_iPicNum2) * 16, 16*9, SRCPAINT);
+			StretchBlt(g_mdc, x, y, 32, 32, g_bufdc, (16 + g_iPicNum2) * 16, 16 * 9, 16, 16, SRCPAINT);
 			g_iPicNum2++;
 		}
 		for (int i = 0; i <= g_iBulletNum; i++)
 		{
 			g_iDirection1 = Bullet_Arry[i].Bullet_GetDirection();
 			Bullet_Arry[i].Bullet_Getcoord(&x, &y);
-			BitBlt(g_mdc, x, y, 8, 8, g_bufdc, (40 + g_iDirection1) * 8, 16*6, SRCPAINT);
-			//StretchBlt(g_mdc, x, y, 16, 32, g_bufdc, (40 + g_iDirection1) * 8, 16 * 6, 8, 16, SRCPAINT);
+			//BitBlt(g_mdc, x, y, 8, 16, g_bufdc, (40 + g_iDirection1) * 8, 16*6, SRCPAINT);
+			StretchBlt(g_mdc, x, y, 16, 32, g_bufdc, (40 + g_iDirection1) * 8, 16 * 6, 8, 16, SRCPAINT);
 		}
 		BitBlt(g_hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, g_mdc, 0, 0, SRCCOPY);
 	}

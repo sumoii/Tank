@@ -22,7 +22,7 @@ bool Bullet::Bullet_Move()
 	return 0;
 }
 
-bool Bullet::Bullet_Shoot(int Direction, int X_coord, int Y_coord)
+bool Bullet::Bullet_Shoot(int Direction, float X_coord, float Y_coord)
 {
 	Bullet_Direction = Direction;
 	Bullet_X = X_coord;
@@ -35,7 +35,7 @@ int Bullet::Bullet_GetDirection()
 	return Bullet_Direction;
 }
 
-bool Bullet::Bullet_Getcoord(int* X_coord, int* Y_coord)
+bool Bullet::Bullet_Getcoord(float* X_coord, float* Y_coord)
 {
 	*X_coord = Bullet_X;
 	*Y_coord = Bullet_Y;
