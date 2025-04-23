@@ -10,7 +10,7 @@
 #include <windows.h>
 #include  <time.h> //使用获取系统时间time()函数需要包含的头文件
 #include "Tank.h"
-#include "Bullet.h"
+#pragma once
 
 //-----------------------------------【库文件包含部分】---------------------------------------
 //	描述：包含程序所依赖的库文件
@@ -23,7 +23,6 @@
 #define WINDOW_WIDTH	932						//为窗口宽度定义的宏，以方便在此处修改窗口宽度
 #define WINDOW_HEIGHT	932							//为窗口高度定义的宏，以方便在此处修改窗口高度
 #define WINDOW_TITLE	L"坦克大战"	//为窗口标题定义的宏
-#define BULLET_MAX  50
 
 //-----------------------------------【全局变量声明部分】-------------------------------------
 //	描述：全局变量的声明
@@ -31,9 +30,8 @@
 HDC			g_hdc = NULL, g_mdc = NULL, g_bufdc = NULL;//全局设备环境句柄
 HBITMAP g_hBitmap = NULL , g_hBackGround = NULL;	//全局位图句柄
 DWORD		g_tPre = 0, g_tNow = 0,g_tStart = 0;					//声明两个函数来记录时间,g_tPre记录上一次绘图的时间，g_tNow记录此次准备绘图的时间
-Tank Play1;	//声明两个玩家坦克;
-Bullet Bullet_Arry[BULLET_MAX];
-int g_iPicNum1 = 0, g_iPicNum2 = 0,g_iDirection1 = 0, g_iBulletNum = 0;
+Tank Play1(0, 432, 800);	//声明两个玩家坦克;
+int g_iPicNum1 = 0, g_iPicNum2 = 0, g_iDirection1 = 0, g_iBulletNum = 0;
 float x = 0, y = 0;
 
 //-----------------------------------【全局函数声明部分】-------------------------------------
@@ -100,8 +98,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			g_tNow = GetTickCount();   //获取当前系统时间
 			if (g_tNow - g_tPre >= 100)        //当此次循环运行与上次绘图时间相差0.1秒时再进行重绘操作
 			{
-				for (int i = 0; i <= g_iBulletNum; i++)
-					Bullet_Arry[i].Bullet_Move();
 				Game_Paint(hwnd);
 			}
 		}
@@ -141,10 +137,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			Play1.Tank_Move(3);
 			break;
 		case 74:
-			Play1.Tank_Shoot(&x,&y);
-			g_iDirection1 = Play1.Tank_Getdirection();
-			Bullet_Arry[g_iBulletNum].Bullet_Shoot(g_iDirection1, x, y);
-			g_iBulletNum++;
+			Play1.Tank_Shoot(&x, &y);
 			break;
 		}
 		break;
@@ -180,7 +173,6 @@ BOOL Game_Init(HWND hwnd)
 	g_hBitmap = (HBITMAP)LoadImage(NULL, L"../Tank_resource/resources/tank.bmp", IMAGE_BITMAP, 400, 256, LR_LOADFROMFILE);
 	g_hBackGround = (HBITMAP)LoadImage(NULL, L"../Tank_resource/resources/black.bmp", IMAGE_BITMAP, 1920, 1080, LR_LOADFROMFILE);
 	g_tStart = GetTickCount();
-	Play1.TanK_Born(432, 800);
 	Game_Paint(hwnd);
 	return TRUE;
 }
@@ -218,15 +210,20 @@ VOID Game_Paint(HWND hwnd)
 			StretchBlt(g_mdc, x, y, 32, 32, g_bufdc, (16 + g_iPicNum2) * 16, 16 * 9, 16, 16, SRCPAINT);
 			g_iPicNum2++;
 		}
-		for (int i = 0; i <= g_iBulletNum; i++)
-		{
-			g_iDirection1 = Bullet_Arry[i].Bullet_GetDirection();
-			Bullet_Arry[i].Bullet_Getcoord(&x, &y);
-			//BitBlt(g_mdc, x, y, 8, 16, g_bufdc, (40 + g_iDirection1) * 8, 16*6, SRCPAINT);
+		for (auto it = Play1.bullets.begin();it!= Play1.bullets.end();) {
+			g_iDirection1 = it->Bullet_GetDirection();
+			it->Bullet_Getcoord(&x, &y);
 			StretchBlt(g_mdc, x, y, 16, 32, g_bufdc, (40 + g_iDirection1) * 8, 16 * 6, 8, 16, SRCPAINT);
 		}
+		//g_iDirection1 = Play1.bullets.Bullet_GetDirection();
+		//Play1.bullet.Bullet_Getcoord(&x, &y);
+		//BitBlt(g_mdc, x, y, 8, 16, g_bufdc, (40 + g_iDirection1) * 8, 16*6, SRCPAINT);
+		StretchBlt(g_mdc, x, y, 16, 32, g_bufdc, (40 + g_iDirection1) * 8, 16 * 6, 8, 16, SRCPAINT);
 		BitBlt(g_hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, g_mdc, 0, 0, SRCCOPY);
 	}
+	//Play1.bullet.Bullet_Move();
+	for (auto it = Play1.bullets.begin(); it != Play1.bullets.end();)
+		it->Bullet_Move();
 	g_tPre = GetTickCount(); //记录此次绘图时间
 }
 

@@ -2,11 +2,11 @@
 #define WINDOW_WIDTH	932						//为窗口宽度定义的宏，以方便在此处修改窗口宽度
 #define WINDOW_HEIGHT	932							//为窗口高度定义的宏，以方便在此处修改窗口高度
 
-bool Tank::TanK_Born(float X, float Y)
+Tank::Tank(int Direction, float X_coord, float Y_coord)
 {
-	Tank_X = X;
-	Tank_Y = Y;
-	return 0;
+	Tank_Direction = Direction;
+	Tank_X = X_coord;
+	Tank_Y = Y_coord;
 }
 
 bool Tank::Tank_Move(int Direction) 
@@ -27,14 +27,14 @@ bool Tank::Tank_Move(int Direction)
 		break;
 	case 2:
 		Tank_Y += Tank_Speed;
-		if (Tank_Y >= WINDOW_HEIGHT)
-			Tank_Y = WINDOW_HEIGHT;
+		if (Tank_Y >= (WINDOW_HEIGHT-32))
+			Tank_Y = (WINDOW_HEIGHT-32);
 		Tank_Direction = 2;
 		break;
 	case 3:
 		Tank_X += Tank_Speed;
-		if (Tank_X > WINDOW_WIDTH)
-			Tank_X = WINDOW_WIDTH;
+		if (Tank_X > (WINDOW_WIDTH-32))
+			Tank_X = (WINDOW_WIDTH-32);
 		Tank_Direction = 3;
 		break;
 	default:
@@ -55,7 +55,7 @@ int Tank::Tank_Getdirection()
 	return Tank_Direction;
 }
 
-bool Tank::Tank_Shoot(float* X_coord, float* Y_coord)
+bool Tank::Tank_Shoot(float *X_coord, float *Y_coord)
 {
 	switch (Tank_Direction)
 	{
@@ -64,8 +64,8 @@ bool Tank::Tank_Shoot(float* X_coord, float* Y_coord)
 		*Y_coord = Tank_Y - 6;
 		break;
 	case 1:
-		*Y_coord = Tank_Y;
 		*X_coord = Tank_X;
+		*Y_coord = Tank_Y;
 		break;
 	case 2:
 		*X_coord = Tank_X + 6;
@@ -78,6 +78,8 @@ bool Tank::Tank_Shoot(float* X_coord, float* Y_coord)
 	default:
 		break;
 	}
-	Tank_Bullet++;
+	if (bullets.size() < 2) {
+		bullets.push_back(Bullet(Tank_Getdirection, *X_coord, *Y_coord));
+	}
 	return 0;
 }
