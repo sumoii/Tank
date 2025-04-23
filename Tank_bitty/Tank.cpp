@@ -78,8 +78,18 @@ bool Tank::Tank_Shoot(float *X_coord, float *Y_coord)
 	default:
 		break;
 	}
-	if (bullets.size() < 2) {
-		bullets.push_back(Bullet(Tank_Getdirection, *X_coord, *Y_coord));
-	}
 	return 0;
+}
+
+void Tank::Tank_AddShoot(const Bullet& bullet)
+{
+	bullets.push_back(bullet);
+}
+
+void Tank::Tank_DeleteShoot()
+{
+	for (auto it = bullets.begin(); it != bullets.end(); ++it) {
+		if (!it->Bullet_Exist)
+			bullets.erase(it);
+	}
 }

@@ -10,7 +10,7 @@ private:
 	float Bullet_X;
 	float Bullet_Y;
 public:
-	Bullet(int Direction, float X_coord, float Y_coord);
+	Bullet(int Direction, float X_coord, float Y_coord, bool Exist) : Bullet_Direction(Direction), Bullet_X(X_coord),Bullet_Y(Y_coord) , Bullet_Exist(Exist){}
 	bool Bullet_Exist;
 	bool Bullet_Shoot(int Direction, float X_coord, float Y_coord);
 	bool Bullet_Getcoord(float* X_coord, float* Y_coord);

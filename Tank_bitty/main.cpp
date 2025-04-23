@@ -138,6 +138,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 			break;
 		case 74:
 			Play1.Tank_Shoot(&x, &y);
+			if (Play1.bullets.size() < 2) {
+				g_iDirection1 == Play1.Tank_Getdirection(); 
+				Play1.Tank_AddShoot(Bullet(g_iDirection1, x, y, true));
+			}
+
 			break;
 		}
 		break;
@@ -210,20 +215,26 @@ VOID Game_Paint(HWND hwnd)
 			StretchBlt(g_mdc, x, y, 32, 32, g_bufdc, (16 + g_iPicNum2) * 16, 16 * 9, 16, 16, SRCPAINT);
 			g_iPicNum2++;
 		}
-		for (auto it = Play1.bullets.begin();it!= Play1.bullets.end();) {
-			g_iDirection1 = it->Bullet_GetDirection();
-			it->Bullet_Getcoord(&x, &y);
-			StretchBlt(g_mdc, x, y, 16, 32, g_bufdc, (40 + g_iDirection1) * 8, 16 * 6, 8, 16, SRCPAINT);
+		for (auto it = Play1.bullets.begin();it!= Play1.bullets.end(); ++it) {
+			if (it->Bullet_Exist) {
+				g_iDirection1 = it->Bullet_GetDirection();
+				it->Bullet_Getcoord(&x, &y);
+				StretchBlt(g_mdc, x, y, 16, 32, g_bufdc, (40 + g_iDirection1) * 8, 16 * 6, 8, 16, SRCPAINT);
+			}
 		}
 		//g_iDirection1 = Play1.bullets.Bullet_GetDirection();
 		//Play1.bullet.Bullet_Getcoord(&x, &y);
 		//BitBlt(g_mdc, x, y, 8, 16, g_bufdc, (40 + g_iDirection1) * 8, 16*6, SRCPAINT);
-		StretchBlt(g_mdc, x, y, 16, 32, g_bufdc, (40 + g_iDirection1) * 8, 16 * 6, 8, 16, SRCPAINT);
+		//StretchBlt(g_mdc, x, y, 16, 32, g_bufdc, (40 + g_iDirection1) * 8, 16 * 6, 8, 16, SRCPAINT);
 		BitBlt(g_hdc, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, g_mdc, 0, 0, SRCCOPY);
 	}
 	//Play1.bullet.Bullet_Move();
-	for (auto it = Play1.bullets.begin(); it != Play1.bullets.end();)
+	for (auto it = Play1.bullets.begin(); it != Play1.bullets.end();it++){
 		it->Bullet_Move();
+		it->Bullet_Disapper();
+	}
+
+	Play1.Tank_DeleteShoot();
 	g_tPre = GetTickCount(); //记录此次绘图时间
 }
 

@@ -1,6 +1,6 @@
 #include"Bullet.h"
 #include<vector>
-#include <memory>
+#include <list>
 #pragma once
 
 class Tank
@@ -21,5 +21,7 @@ public:
 	bool Tank_Uplevel();
 	int Tank_Getdirection();
 	bool Tank_Shoot(float* X_coord, float* Y_coord);
-	std::vector<Bullet> bullets;
+	void Tank_AddShoot(const Bullet &bullet);
+	void Tank_DeleteShoot();
+	std::list<Bullet> bullets;
 };

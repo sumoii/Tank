@@ -1,13 +1,5 @@
 #include "Bullet.h"
 
-Bullet::Bullet(int Direction, float X_coord, float Y_coord)
-{
-	Bullet_Direction = Direction;
-	Bullet_X = X_coord;
-	Bullet_Y = Y_coord;
-	Bullet_Exist = true;
-}
-
 bool Bullet::Bullet_Shoot(int Direction, float X_coord, float Y_coord)
 {
 	Bullet_Direction = Direction;
@@ -54,6 +46,7 @@ bool Bullet::Bullet_Getcoord(float* X_coord, float* Y_coord)
 
 bool Bullet::Bullet_Disapper()
 {
-	Bullet_Exist = false;
+	if(Bullet_X<0 || Bullet_Y<0 || Bullet_Y>WINDOW_HEIGHT|| Bullet_X>WINDOW_WIDTH)
+		Bullet_Exist = false;
 	return 0;
 }
